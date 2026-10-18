@@ -12,7 +12,7 @@ A portable copy of this source's outdoor lighting stack, including the procedura
 
 ## Project status and compatibility
 
-This repository is an **unfinished proof of concept**, not a production-ready,
+This repository is an **unfinished proof of concept intentionally left as-is**,`r`nnot a production-ready,
 drop-in lighting replacement. Some paths are experimental or optional, and the
 system has not been broadly tested across Toontown sources, Panda3D versions,
 graphics cards, or graphics drivers. Different GPU shader compilers and render
