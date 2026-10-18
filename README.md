@@ -2,7 +2,7 @@
 
 > [!WARNING]
 > **Unfinished proof of concept — use at your own risk.** This lighting system is
-> still under development, some features may be incomplete, and testing has been
+> intentionally left unfinished, some features are incomplete, and testing has been
 > limited to a small number of setups. Shader behavior, visual quality, stability,
 > and performance may vary across graphics cards, drivers, and Panda3D builds.
 > Expect to debug or adapt it for your source and renderer before using it in a
