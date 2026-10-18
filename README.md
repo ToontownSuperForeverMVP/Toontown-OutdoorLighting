@@ -1,6 +1,24 @@
 # OutdoorLighting (Toontown / Panda3D)
 
+> [!WARNING]
+> **Unfinished proof of concept — use at your own risk.** This lighting system is
+> still under development, some features may be incomplete, and testing has been
+> limited to a small number of setups. Shader behavior, visual quality, stability,
+> and performance may vary across graphics cards, drivers, and Panda3D builds.
+> Expect to debug or adapt it for your source and renderer before using it in a
+> release. Back up your source before running the installer.
+
 A portable copy of this source's outdoor lighting stack, including the procedural sky and all GLSL shaders used by lighting, shadows, water, post processing, and sun rays.
+
+## Project status and compatibility
+
+This repository is an **unfinished proof of concept**, not a production-ready,
+drop-in lighting replacement. Some paths are experimental or optional, and the
+system has not been broadly tested across Toontown sources, Panda3D versions,
+graphics cards, or graphics drivers. Different GPU shader compilers and render
+backends can produce rendering differences or failures; optional effects may
+need to be disabled or adjusted for a target client. Validate it in your own
+client and renderer before distributing or shipping it.
 
 ## Screenshots
 
