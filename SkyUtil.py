@@ -1,0 +1,95 @@
+"""Compatibility helpers for the Hood-owned, camera-attached model sky.
+
+New zones normally use ProceduralSky. These functions preserve the classic
+cloud-model animation path when shader skies are disabled or unavailable; they
+do not load a sky themselves because the active Hood owns ``hood.sky``.
+"""
+
+from __future__ import annotations
+
+from panda3d.core import BitMask32, CompassEffect, NodePath
+from direct.task.Task import Task
+from direct.task.TaskManagerGlobal import taskMgr
+from direct.showbase.ShowBaseGlobal import globalClock
+from direct.directnotify import DirectNotifyGlobal
+notify = DirectNotifyGlobal.directNotify.newCategory('SkyUtil')
+
+
+def _base():
+    """Return the live ShowBase instance (game-agnostic: no game imports)."""
+    try:
+        import builtins
+        b = getattr(builtins, 'base', None)
+        if b is not None:
+            return b
+    except Exception:
+        pass
+    try:
+        from direct.showbase import ShowBaseGlobal as _SBG
+        return getattr(_SBG, 'base', None)
+    except Exception:
+        return None
+
+
+def _wantProceduralSky():
+    """Return whether the shader sky is available and enabled."""
+    try:
+        try:
+            from . import OutdoorLighting
+        except ImportError:
+            from toontown.hood import OutdoorLighting
+        return OutdoorLighting._wantProceduralSky()
+    except Exception:
+        return False
+
+
+def cloudSkyTrack(task):
+    """Rotate the two existing cloud layers at different speeds each frame."""
+    task.h += globalClock.getDt() * 0.25
+    if task.cloud1.isEmpty() or task.cloud2.isEmpty():
+        notify.warning("Couln't find clouds!")
+        return Task.done
+    task.cloud1.setH(task.h)
+    task.cloud2.setH(-task.h * 0.8)
+    return Task.cont
+
+
+def startCloudSky(hood, parent=None, effects=CompassEffect.PRot | CompassEffect.PZ):
+    """Attach/configure the Hood's legacy sky and start its cloud animation."""
+    if parent is None:
+        b = _base()
+        parent = getattr(b, 'camera', None) if b is not None else None
+    if parent is None:
+        notify.warning('startCloudSky: no camera parent available; sky not attached')
+        return
+    hood.sky.setDepthTest(0)
+    hood.sky.setDepthWrite(0)
+    hood.sky.setBin('background', 100)
+    try:
+        hood.sky.find('**/Sky').reparentTo(hood.sky, -1)
+    except Exception:
+        pass
+    # Legacy skies must not inherit the generated scene shader or outdoor lights.
+    hood.sky.setShaderOff(1)
+    hood.sky.setLightOff(101)
+    wantProcedural = _wantProceduralSky()
+    if wantProcedural:
+        hood.sky.hide(BitMask32.allOn())
+    else:
+        hood.sky.show(BitMask32.allOn())
+    hood.sky.reparentTo(parent)
+    hood.sky.setZ(0.0)
+    hood.sky.setHpr(0.0, 0.0, 0.0)
+    ce = CompassEffect.make(NodePath(), effects)
+    hood.sky.node().setEffect(ce)
+    if wantProcedural:
+        taskMgr.remove('skyTrack')
+        return
+    skyTrackTask = Task(hood.skyTrack)
+    skyTrackTask.h = 0
+    skyTrackTask.cloud1 = hood.sky.find('**/cloud1')
+    skyTrackTask.cloud2 = hood.sky.find('**/cloud2')
+    if not skyTrackTask.cloud1.isEmpty() and not skyTrackTask.cloud2.isEmpty():
+        taskMgr.add(skyTrackTask, 'skyTrack')
+    else:
+        notify.warning("Couln't find clouds!")
